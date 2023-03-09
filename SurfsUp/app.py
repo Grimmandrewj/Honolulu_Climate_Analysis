@@ -130,16 +130,17 @@ def start_date(start):
     session = Session(engine)
 
     # Create query for min, max, and average tobs for dates >= user submission
-    start_date_results = session.query(func.min(Measure.tobs), func.max(Measure.tobs), func.avg(Measure.tobs))\
-        .filter(Measure.date >= start).all()
+    start_date_results = (session.query(Measure.date, func.min(Measure.tobs), func.max(Measure.tobs), func.avg(Measure.tobs))\
+        .filter((Measure.date) >= start).group_by(Measure.date).all())
     
     # Close session
     session.close()
 
     # Create list of min, max, and avg temps to populate dictionary with query results
     start_date_values = []
-    for min, max, avg in start_date_results:
+    for date, min, max, avg in start_date_results:
         start_date_dict = {}
+        start_date_dict["date"] = date
         start_date_dict["min"] = min
         start_date_dict["max"] = max
         start_date_dict["average"] = avg
@@ -154,18 +155,19 @@ def start_end_date(start, end):
     # Create a session (link) from Python to the database
     session = Session(engine)
 
-    # Run query for min, max, and avg temps for dates = start date and <= user submission (end date)
-    start_end_date_results = session.query(func.min(Measure.tobs), func.max(Measure.tobs), func.avg(Measure.tobs))\
-        .filter(Measure.date >= start)\
-        .filter(Measure.date <= end).all()
+    # Run query for min, max, and avg temps for dates >= start date and <= end date (user-submitted)
+    start_end_date_results = (session.query(Measure.date, func.min(Measure.tobs), func.max(Measure.tobs), func.avg(Measure.tobs))\
+        .filter((Measure.date) >= start)\
+        .filter((Measure.date) <= end).group_by(Measure.date).all())
     
     # Close session
     session.close()
 
     # Create list of min, max, and average temps to append dictionary values
     start_end_date_values = []
-    for min, max, avg in start_end_date_results:
+    for date, min, max, avg in start_end_date_results:
         start_end_date_dict = {}
+        start_end_date_dict["date"] = date
         start_end_date_dict["min_temp"] = min
         start_end_date_dict["max_temp"] = max
         start_end_date_dict["avg_temp"] = avg
